@@ -1,0 +1,14 @@
+*.pyc
+__pycache__/
+*.egg-info/
+dist/
+build/
+*.egg
+.DS_Store
+*.xlsx
+.idea/
+.vscode/
+*.spec
+venv/
+env/
+全格式整理记录_*.xlsx

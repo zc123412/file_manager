@@ -1,7 +1,7 @@
 {
-  "source_path": "/Users/zangchao/Documents/持续性管理",
-  "target_path": "/Users/zangchao/Documents/target folder demo",
-  "sub_folder_name": "【持续管理】",
+  "source_path": "C:/Users/uif12966/Documents/持续性管理",
+  "target_path": "C:/Users/uif12966/Documents/目标文件夹",
+  "search_keyword": "持续管理",
   "allowed_extensions": [".pdf", ".jpg", ".png", ".jpeg"],
   "log_filename_prefix": "全格式整理记录"
 }

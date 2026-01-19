@@ -18,7 +18,7 @@ def load_config(config_file="config.json"):
         print(f"错误：配置文件格式不正确")
         raise
 
-def organize_files_comprehensive(source_root, target_root, sub_folder_name, allowed_extensions, log_filename_prefix):
+def organize_files_comprehensive(source_root, target_root, allowed_extensions, log_filename_prefix, search_keyword):
     source_path = Path(source_root)
     target_path = Path(target_root)
     
@@ -38,7 +38,16 @@ def organize_files_comprehensive(source_root, target_root, sub_folder_name, allo
 
     for folder in target_path.iterdir():
         if folder.is_dir():
+            # 第一步：去掉数字前缀
             clean_name = prefix_pattern.sub('', folder.name)
+            # 第二步：如果包含"原："或"原:"，只取之前的部分
+            if '原：' in clean_name:
+                clean_name = clean_name.split('原：')[0]
+            elif '原:' in clean_name:
+                clean_name = clean_name.split('原:')[0]
+            # 第三步：去掉前后空格
+            clean_name = clean_name.strip()
+            
             if clean_name:
                 company_map[clean_name] = folder
 
@@ -67,12 +76,25 @@ def organize_files_comprehensive(source_root, target_root, sub_folder_name, allo
         
         if matched_key:
             target_company_folder = company_map[matched_key]
-            final_dest_dir = target_company_folder / sub_folder_name
+            
+            # 在目标公司文件夹中查找包含关键字的子文件夹
+            matching_subfolder = None
+            
+            for item in target_company_folder.iterdir():
+                if item.is_dir() and search_keyword in item.name:
+                    matching_subfolder = item
+                    break
+            
+            # 如果找到了包含关键字的文件夹就使用它，否则创建新文件夹
+            if matching_subfolder:
+                final_dest_dir = matching_subfolder
+            else:
+                final_dest_dir = target_company_folder / search_keyword
+                final_dest_dir.mkdir(parents=True, exist_ok=True)
+            
             dest_path_str = str(final_dest_dir)
             
             try:
-                # 确保目标子目录存在
-                final_dest_dir.mkdir(parents=True, exist_ok=True)
                 
                 # 执行移动操作
                 shutil.move(str(file_path), str(final_dest_dir / file_name))
@@ -121,8 +143,8 @@ if __name__ == "__main__":
     
     SOURCE = config["source_path"]
     TARGET = config["target_path"]
-    SUB_FOLDER = config["sub_folder_name"]
+    SEARCH_KEYWORD = config["search_keyword"]
     ALLOWED_EXT = config["allowed_extensions"]
     LOG_PREFIX = config["log_filename_prefix"]
     
-    organize_files_comprehensive(SOURCE, TARGET, SUB_FOLDER, ALLOWED_EXT, LOG_PREFIX)
+    organize_files_comprehensive(SOURCE, TARGET, ALLOWED_EXT, LOG_PREFIX, SEARCH_KEYWORD)

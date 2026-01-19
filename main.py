@@ -85,12 +85,11 @@ def organize_files_comprehensive(source_root, target_root, allowed_extensions, l
                     matching_subfolder = item
                     break
             
-            # 如果找到了包含关键字的文件夹就使用它，否则创建新文件夹
+            # 如果找到了包含关键字的文件夹就使用它，否则直接放在公司文件夹下
             if matching_subfolder:
                 final_dest_dir = matching_subfolder
             else:
-                final_dest_dir = target_company_folder / search_keyword
-                final_dest_dir.mkdir(parents=True, exist_ok=True)
+                final_dest_dir = target_company_folder
             
             dest_path_str = str(final_dest_dir)
             

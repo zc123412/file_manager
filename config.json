@@ -1,5 +1,15 @@
 {
-  "source_path": "C:/Users/uif12966/Documents/持续性管理",
+  "source_paths": [
+    "C:/Users/uif12966/Documents/【A 2018年及以前】",
+    "C:/Users/uif12966/Documents/【A 2019年】",
+    "C:/Users/uif12966/Documents/【A 2020年】",
+    "C:/Users/uif12966/Documents/【A 2021年】",
+    "C:/Users/uif12966/Documents/【A 2022年】",
+    "C:/Users/uif12966/Documents/【A 2023年】",
+    "C:/Users/uif12966/Documents/【A 2024年】",
+    "C:/Users/uif12966/Documents/【A 2025年】",
+    "C:/Users/uif12966/Documents/【A 2026年】"
+  ],
   "target_path": "C:/Users/uif12966/Documents/目标文件夹",
   "search_keyword": "持续管理",
   "allowed_extensions": [".pdf", ".jpg", ".png", ".jpeg"],

@@ -19,7 +19,7 @@ def load_config(config_file="config.json"):
         print(f"错误：配置文件格式不正确")
         raise
 
-def organize_files_comprehensive(source_root, target_root, allowed_extensions, log_filename_prefix, search_keyword):
+def organize_files_comprehensive(source_roots, target_root, allowed_extensions, log_filename_prefix, search_keyword):
     # 配置日志
     log_filename = f"{log_filename_prefix}_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
     logging.basicConfig(
@@ -30,11 +30,10 @@ def organize_files_comprehensive(source_root, target_root, allowed_extensions, l
         ]
     )
     
-    source_path = Path(source_root)
     target_path = Path(target_root)
     
     logging.info(f"程序启动")
-    logging.info(f"源文件夹: {source_root}")
+    logging.info(f"源文件夹列表: {source_roots}")
     logging.info(f"目标文件夹: {target_root}")
     logging.info(f"搜索关键字: {search_keyword}")
     logging.info(f"支持的文件格式: {allowed_extensions}")
@@ -44,11 +43,6 @@ def organize_files_comprehensive(source_root, target_root, allowed_extensions, l
     
     # 用于存储执行记录
     execution_records = []
-
-    if not source_path.exists():
-        logging.error(f"错误：找不到源文件夹 {source_root}")
-        print(f"错误：找不到源文件夹 {source_root}")
-        return
 
     # 1. 建立公司名称映射表 (支持 2. 或 4、 等前缀)
     logging.info(f"开始扫描目标文件夹: {target_root}")
@@ -75,15 +69,27 @@ def organize_files_comprehensive(source_root, target_root, allowed_extensions, l
     for clean_name in sorted_keys:
         logging.info(f"  - {clean_name} => {company_map[clean_name].name}")
 
-    # 2. 遍历源文件夹中的所有文件
+    # 2. 遍历所有源文件夹中的文件
     logging.info(f"开始扫描源文件夹中的文件 (支持格式: {', '.join(allowed_extensions)})")
     print(f"开始扫描文件 (支持格式: {', '.join(allowed_extensions)})...")
     
-    # 使用 iterdir() 遍历所有文件，然后通过后缀过滤
-    for file_path in source_path.iterdir():
-        # 排除文件夹，且只处理指定后缀的文件
-        if file_path.is_dir() or file_path.suffix.lower() not in allowed_extensions:
+    # 遍历每个源文件夹
+    for source_root in source_roots:
+        source_path = Path(source_root)
+        
+        if not source_path.exists():
+            logging.error(f"错误：找不到源文件夹 {source_root}")
+            print(f"错误：找不到源文件夹 {source_root}")
             continue
+        
+        logging.info(f"正在处理源文件夹: {source_root}")
+        print(f"\n正在处理源文件夹: {source_root}")
+        
+        # 使用 iterdir() 遍历所有文件，然后通过后缀过滤
+        for file_path in source_path.iterdir():
+            # 排除文件夹，且只处理指定后缀的文件
+            if file_path.is_dir() or file_path.suffix.lower() not in allowed_extensions:
+                continue
 
         file_name = file_path.name
         matched_key = None
@@ -181,13 +187,13 @@ if __name__ == "__main__":
     try:
         config = load_config("config.json")
         
-        SOURCE = config["source_path"]
+        SOURCES = config["source_paths"]
         TARGET = config["target_path"]
         SEARCH_KEYWORD = config["search_keyword"]
         ALLOWED_EXT = config["allowed_extensions"]
         LOG_PREFIX = config["log_filename_prefix"]
         
-        organize_files_comprehensive(SOURCE, TARGET, ALLOWED_EXT, LOG_PREFIX, SEARCH_KEYWORD)
+        organize_files_comprehensive(SOURCES, TARGET, ALLOWED_EXT, LOG_PREFIX, SEARCH_KEYWORD)
     except Exception as e:
         # 如果在日志配置之前出错，确保写入一个错误日志文件
         error_log = f"error_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"

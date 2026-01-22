@@ -19,7 +19,7 @@ def load_config(config_file="config.json"):
         print(f"错误：配置文件格式不正确")
         raise
 
-def organize_files_comprehensive(source_roots, target_root, allowed_extensions, log_filename_prefix, search_keyword):
+def organize_files_comprehensive(source_roots, target_roots, allowed_extensions, log_filename_prefix, search_keyword):
     # 配置日志
     log_filename = f"{log_filename_prefix}_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
     logging.basicConfig(
@@ -30,11 +30,13 @@ def organize_files_comprehensive(source_roots, target_root, allowed_extensions, 
         ]
     )
     
-    target_path = Path(target_root)
+    # 确保 target_roots 是列表
+    if isinstance(target_roots, str):
+        target_roots = [target_roots]
     
     logging.info(f"程序启动")
     logging.info(f"源文件夹列表: {source_roots}")
-    logging.info(f"目标文件夹: {target_root}")
+    logging.info(f"目标文件夹列表: {target_roots}")
     logging.info(f"搜索关键字: {search_keyword}")
     logging.info(f"支持的文件格式: {allowed_extensions}")
     
@@ -45,24 +47,37 @@ def organize_files_comprehensive(source_roots, target_root, allowed_extensions, 
     execution_records = []
 
     # 1. 建立公司名称映射表 (支持 2. 或 4、 等前缀)
-    logging.info(f"开始扫描目标文件夹: {target_root}")
+    logging.info(f"开始扫描目标文件夹中的子文件夹")
     company_map = {}
     prefix_pattern = re.compile(r'^\d+[^a-zA-Z\u4e00-\u9fa5]*')
 
-    for folder in target_path.iterdir():
-        if folder.is_dir():
-            # 第一步：去掉数字前缀
-            clean_name = prefix_pattern.sub('', folder.name)
-            # 第二步：如果包含"原："或"原:"，只取之前的部分
-            if '原：' in clean_name:
-                clean_name = clean_name.split('原：')[0]
-            elif '原:' in clean_name:
-                clean_name = clean_name.split('原:')[0]
-            # 第三步：去掉前后空格
-            clean_name = clean_name.strip()
-            
-            if clean_name:
-                company_map[clean_name] = folder
+    # 遍历每个目标根路径，获取其中的子文件夹作为公司文件夹
+    for target_root in target_roots:
+        target_path = Path(target_root)
+        
+        if not target_path.exists():
+            logging.warning(f"目标路径不存在: {target_root}")
+            continue
+        
+        for folder in target_path.iterdir():
+            if folder.is_dir():
+                # 第一步：去掉数字前缀
+                clean_name = prefix_pattern.sub('', folder.name)
+                # 第二步：如果包含"原："或"原:"，只取之前的部分
+                if '原：' in clean_name:
+                    clean_name = clean_name.split('原：')[0]
+                elif '原:' in clean_name:
+                    clean_name = clean_name.split('原:')[0]
+                # 第三步：去掉前后空格
+                clean_name = clean_name.strip()
+                
+                if clean_name:
+                    # 检查重复
+                    if clean_name in company_map:
+                        error_msg = f"错误：公司名称重复！\n  '{clean_name}' 已存在于: {company_map[clean_name].name}\n  现在又发现于: {folder.name}"
+                        logging.error(error_msg)
+                        raise ValueError(error_msg)
+                    company_map[clean_name] = folder
 
     sorted_keys = sorted(company_map.keys(), key=len, reverse=True)
     logging.info(f"找到 {len(company_map)} 个公司文件夹")
@@ -91,67 +106,67 @@ def organize_files_comprehensive(source_roots, target_root, allowed_extensions, 
             if file_path.is_dir() or file_path.suffix.lower() not in allowed_extensions:
                 continue
 
-        file_name = file_path.name
-        matched_key = None
-        status = "跳过"
-        dest_path_str = "N/A"
-        remark = "未匹配到对应的公司文件夹"
+            file_name = file_path.name
+            matched_key = None
+            status = "跳过"
+            dest_path_str = "N/A"
+            remark = "未匹配到对应的公司文件夹"
 
-        # 匹配逻辑
-        for key in sorted_keys:
-            if key in file_name:
-                matched_key = key
-                break
-        
-        if matched_key:
-            target_company_folder = company_map[matched_key]
-            logging.info(f"文件 '{file_name}' 匹配到公司: {matched_key}")
-            
-            # 在目标公司文件夹中查找包含关键字的子文件夹
-            matching_subfolder = None
-            
-            for item in target_company_folder.iterdir():
-                if item.is_dir() and search_keyword in item.name:
-                    matching_subfolder = item
+            # 匹配逻辑
+            for key in sorted_keys:
+                if key in file_name:
+                    matched_key = key
                     break
             
-            # 如果找到了包含关键字的文件夹就使用它，否则直接放在公司文件夹下
-            if matching_subfolder:
-                final_dest_dir = matching_subfolder
-                logging.info(f"  找到子文件夹: {matching_subfolder.name}")
+            if matched_key:
+                target_company_folder = company_map[matched_key]
+                logging.info(f"文件 '{file_name}' 匹配到公司: {matched_key}")
+                
+                # 在目标公司文件夹中查找包含关键字的子文件夹
+                matching_subfolder = None
+                
+                for item in target_company_folder.iterdir():
+                    if item.is_dir() and search_keyword in item.name:
+                        matching_subfolder = item
+                        break
+                
+                # 如果找到了包含关键字的文件夹就使用它，否则直接放在公司文件夹下
+                if matching_subfolder:
+                    final_dest_dir = matching_subfolder
+                    logging.info(f"  找到子文件夹: {matching_subfolder.name}")
+                else:
+                    final_dest_dir = target_company_folder
+                    logging.info(f"  未找到包含'{search_keyword}'的子文件夹，使用公司根目录")
+                
+                dest_path_str = str(final_dest_dir)
+                
+                try:
+                    
+                    # 执行移动操作
+                    shutil.move(str(file_path), str(final_dest_dir / file_name))
+                    
+                    status = "成功"
+                    remark = f"已移动至: {target_company_folder.name}"
+                    logging.info(f"  成功移动到: {dest_path_str}")
+                    print(f"✅ {file_name} -> {target_company_folder.name}")
+                except Exception as e:
+                    status = "失败"
+                    remark = f"移动出错: {str(e)}"
+                    logging.error(f"  移动失败: {str(e)}")
+                    print(f"❌ {file_name} 移动失败")
             else:
-                final_dest_dir = target_company_folder
-                logging.info(f"  未找到包含'{search_keyword}'的子文件夹，使用公司根目录")
+                logging.warning(f"文件 '{file_name}' 未匹配到任何公司文件夹")
             
-            dest_path_str = str(final_dest_dir)
-            
-            try:
-                
-                # 执行移动操作
-                shutil.move(str(file_path), str(final_dest_dir / file_name))
-                
-                status = "成功"
-                remark = f"已移动至: {target_company_folder.name}"
-                logging.info(f"  成功移动到: {dest_path_str}")
-                print(f"✅ {file_name} -> {target_company_folder.name}")
-            except Exception as e:
-                status = "失败"
-                remark = f"移动出错: {str(e)}"
-                logging.error(f"  移动失败: {str(e)}")
-                print(f"❌ {file_name} 移动失败")
-        else:
-            logging.warning(f"文件 '{file_name}' 未匹配到任何公司文件夹")
-        
-        # 记录到列表
-        execution_records.append({
-            "文件名": file_name,
-            "文件类型": file_path.suffix.upper(),
-            "匹配关键词": matched_key if matched_key else "无",
-            "执行状态": status,
-            "目标路径": dest_path_str,
-            "备注": remark,
-            "处理时间": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        })
+            # 记录到列表
+            execution_records.append({
+                "文件名": file_name,
+                "文件类型": file_path.suffix.upper(),
+                "匹配关键词": matched_key if matched_key else "无",
+                "执行状态": status,
+                "目标路径": dest_path_str,
+                "备注": remark,
+                "处理时间": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            })
 
     # 3. 导出 Excel 日志
     if execution_records:

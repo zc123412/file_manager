@@ -1,16 +1,18 @@
 {
   "source_paths": [
-    "C:/Users/uif12966/Documents/【A 2018年及以前】",
-    "C:/Users/uif12966/Documents/【A 2019年】",
-    "C:/Users/uif12966/Documents/【A 2020年】",
-    "C:/Users/uif12966/Documents/【A 2021年】",
-    "C:/Users/uif12966/Documents/【A 2022年】",
-    "C:/Users/uif12966/Documents/【A 2023年】",
-    "C:/Users/uif12966/Documents/【A 2024年】",
-    "C:/Users/uif12966/Documents/【A 2025年】",
-    "C:/Users/uif12966/Documents/【A 2026年】"
+    "Y:/【A：新增：待审核】/【待分配变更材料】",
+    "Y:/【A：新增：待审核】/【待分配变更材料2】"
   ],
-  "target_path": "C:/Users/uif12966/Documents/目标文件夹",
+  "target_path": [
+    "Y:/【A：新增：待审核】/【A 2018年及以前】/【2018年前已交易已整理客户】",
+    "Y:/【A：新增：待审核】/【A 2019年】",
+    "Y:/【A：新增：待审核】/【A 2020年】",
+    "Y:/【A：新增：待审核】/【A 2021年】",
+    "Y:/【A：新增：待审核】/【A 2022年】",
+    "Y:/【A：新增：待审核】/【A 2023年】",
+    "Y:/【A：新增：待审核】/【A 2024年】",
+    "Y:/【A：新增：待审核】/【A 2025年】"
+  ],
   "search_keyword": "持续管理",
   "allowed_extensions": [".pdf", ".jpg", ".png", ".jpeg"],
   "log_filename_prefix": "全格式整理记录"
